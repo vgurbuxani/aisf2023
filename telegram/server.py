@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Header, HTTPException, Depends
-from webhooks import update_chat_history, receive_audio_response
+from helpers import update_chat_history, receive_audio_response
 from pydantic import BaseModel
 from uuid import UUID
 from dotenv import load_dotenv
