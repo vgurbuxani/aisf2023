@@ -52,11 +52,17 @@ async def debit(user_chat_id : str, seconds: int):
 
         # Subtract the cost from the balance
         new_balance = balance - cost
+        
 
         # Update the balance in the database
         supabase.table("customers").update({"balance": new_balance}).eq("id", user_chat_id).execute()
         async with bot:
-            await bot.send_message(chat_id=user_chat_id, text=f"Your new balance is {locale.currency(new_balance/100, grouping=True)}")
+            if new_balance < 0:
+                new_balance = 0
+                await bot.send_message(chat_id=user_chat_id, text=f"Your new balance is $0. Use /deposit to add more funds!")
+            else:
+                await bot.send_message(chat_id=user_chat_id, text=f"Your new balance is {locale.currency(new_balance/100, grouping=True)}")
+
     except Exception as e:
         print (e)
         async with bot:

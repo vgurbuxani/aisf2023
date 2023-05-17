@@ -69,7 +69,15 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Your balance is {locale.currency(balance/100,grouping=True)}")
     except Exception as e:
         print (e)
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"No balance found.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Your balance is $0")
+
+
+async def has_funds(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        balance = supabase.table("customers").select("balance").eq("id", update.effective_chat.id).execute().data[0]["balance"]
+        return balance > 10
+    except:
+        return False
 
 
 # This will be called when a pre-checkout query is created
@@ -95,6 +103,10 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
 
 #TODO @ilaffey2 only one of these at a time. maybe a semaphore?
 async def handle_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await has_funds(update, context):
+        await update.message.reply_text("Insufficient balance. Add more funds with /deposit to get started!")
+        return
+
     #Add to DB
     message_uuid = str(uuid.uuid4())
     user_message_text = update.message.text
